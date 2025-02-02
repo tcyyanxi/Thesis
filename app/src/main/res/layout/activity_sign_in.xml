@@ -1,9 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.software.androidthesis.Activity.SignInActivity">
+    xmlns:tools="http://schemas.android.com/tools">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <data>
+        <variable
+            name="viewModel"
+            type="com.software.androidthesis.viewmodel.EmailVerifyViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        tools:context="com.example.android.ui.activity.EmailVerifyActivity">
+
+
+        <ImageView
+            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/img_3"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            >
+        </ImageView>
+
+        <TextView
+            android:layout_marginTop="120dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/text1"
+            android:text="Learning"
+            android:textSize="50sp"
+            android:textColor="?attr/colorPrimary"
+            android:layout_centerHorizontal="true"
+            />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:background="@drawable/white_background1">
+            <!--输入验证邮箱-->
+            <LinearLayout
+                android:id="@+id/email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="30dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="请输入邮箱"
+                    android:textSize="18sp"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:boxStrokeWidth="2dp"
+                    app:endIconMode="clear_text"
+                    app:startIconContentDescription="账号"
+                    app:startIconDrawable="@drawable/email"
+                    tools:ignore="ExtraText,MissingConstraints">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edTxt_verify_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:autofillHints="emailAddress"
+                        android:inputType="textEmailAddress" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!--输入验证码-->
+            <RelativeLayout
+                android:id="@+id/email1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/email"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="20dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="请输入验证码"
+                    android:textSize="18sp"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:boxStrokeWidth="2dp"
+                    app:startIconContentDescription="账号"
+                    tools:ignore="ExtraText,MissingConstraints">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtTxt_verify_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:autofillHints="verify_number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Button
+                    android:id="@+id/Txt_verify_number"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_toRightOf="@+id/edtTxt_verify_number"
+                    android:onClick="emailOnclick"
+                    android:text="获取验证码"
+                    android:textColor="?attr/colorPrimary"
+                    app:rippleColor="@color/m3_text_button_ripple_color_selector"
+                    tools:ignore="NotSibling" />
+            </RelativeLayout>
+
+            <Button
+                android:id="@+id/btn_verify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/email1"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="120dp"
+                android:onClick="loginOnclick"
+                android:text="登录"
+                android:textSize="25sp"
+                app:backgroundTint="?attr/colorPrimaryInverse"
+                app:rippleColor="@color/m3_button_ripple_color_selector" />
+
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+</layout>
