@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:textColor="#000000" />
+
+
+    <LinearLayout
+        android:id="@+id/bar_container"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="5dp"
+        android:layout_height="20dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical">
+
+        <View
+            android:id="@+id/bar"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/percent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:textColor="#3FA0FF" />
+</LinearLayout>

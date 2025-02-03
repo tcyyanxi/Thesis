@@ -92,11 +92,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.navigation_b:
                 mViewPager.setCurrentItem(1);
-                item.setIcon(R.drawable.headset);
+                item.setIcon(R.drawable.book);
                 break;
             case R.id.navigation_c:
                 mViewPager.setCurrentItem(2);
-                item.setIcon(R.drawable.book);
+                item.setIcon(R.drawable.chart);
                 break;
             case R.id.navigation_d:
                 mViewPager.setCurrentItem(3);
