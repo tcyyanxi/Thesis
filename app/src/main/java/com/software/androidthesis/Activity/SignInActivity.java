@@ -7,15 +7,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.software.androidThesis.R;
+
+
+import com.software.androidthesis.api.ApiServiceImpl;
 import com.software.androidthesis.util.SendEmail;
 import com.software.androidthesis.view.ToastView;
 
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,9 +32,10 @@ public class SignInActivity extends AppCompatActivity {
     private int generatedCode;  // 生成的验证码
     private boolean isCodeSent = false;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Handler mainHandler = new Handler();
     private CountDownTimer countDownTimer; // 倒计时对象
-
+    // Retrofit API服务接口
+    private ApiServiceImpl apiServiceImpl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +46,10 @@ public class SignInActivity extends AppCompatActivity {
         sendCodeBtn = findViewById(R.id.Txt_verify_number);
         verifyBtn = findViewById(R.id.btn_verify);
 
-        // 发送验证码按钮
+        // 初始化 ApiServiceImpl
+        apiServiceImpl = new ApiServiceImpl();
+
+// 发送验证码按钮
         sendCodeBtn.setOnClickListener(v -> {
             userEmail = emailInput.getText().toString().trim();
             if (userEmail.isEmpty() || !userEmail.contains("@")) {
@@ -68,42 +75,24 @@ public class SignInActivity extends AppCompatActivity {
         // 验证验证码按钮
         verifyBtn.setOnClickListener(v -> {
             if (!isCodeSent) {
-                ToastView.showCustomToast(SignInActivity.this,"请先发送验证码");
+                ToastView.showCustomToast(SignInActivity.this, "请先发送验证码");
                 return;
             }
 
             String inputCodeStr = codeInput.getText().toString().trim();
             if (inputCodeStr.isEmpty()) {
-                ToastView.showCustomToast(SignInActivity.this,"请输入验证码");
+                ToastView.showCustomToast(SignInActivity.this, "请输入验证码");
                 return;
             }
 
-            int inputCode;
-            try {
-                inputCode = Integer.parseInt(inputCodeStr);
-            } catch (NumberFormatException e) {
-                ToastView.showCustomToast(SignInActivity.this,"请输入数字验证码");
+            // 校验验证码
+            if (!verifyCode(inputCodeStr)) {
+                ToastView.showCustomToast(SignInActivity.this, "验证码错误，请重新输入");
                 return;
             }
 
-            // 进行验证码验证
-            executorService.execute(() -> {
-                boolean isValid = SendEmail.verifyCode(userEmail, inputCode);
-                mainHandler.post(() -> {
-                    if (isValid) {
-                        ToastView.showCustomToast(SignInActivity.this,"验证码正确");
-                        Log.d("登录", "用户 " + userEmail + " 登录成功");
-
-                        // 🔹 验证成功后跳转到 UserEditActivity（不销毁 SignInActivity）
-                        Intent intent = new Intent(SignInActivity.this, UserEditActivity.class);
-                        intent.putExtra("user_email", userEmail);
-                        startActivity(intent);
-
-                    } else {
-                        ToastView.showCustomToast(SignInActivity.this,"验证码错误");
-                    }
-                });
-            });
+            // 验证码正确，进行后端登录操作
+            loginUser(userEmail);
         });
     }
 
@@ -125,6 +114,51 @@ public class SignInActivity extends AppCompatActivity {
             }
         }.start();
     }
+
+    /**
+     * 验证验证码是否正确
+     */
+    private boolean verifyCode(String inputCodeStr) {
+        try {
+            int inputCode = Integer.parseInt(inputCodeStr);
+            return generatedCode == inputCode; // 检查验证码是否匹配
+        } catch (NumberFormatException e) {
+            return false; // 如果格式不正确，返回false
+        }
+    }
+
+    /**
+     * 登录用户
+     */
+    private void loginUser(String email) {
+        Log.d("SignInActivity", "正在调用 loginUser 方法，email：" + email);
+
+        apiServiceImpl.login(email, new ApiServiceImpl.ApiCallback() {
+            @Override
+            public void onSuccess(Map<String, Object> response) {
+                Log.d("SignInActivity", "登录成功，返回数据：" + response.toString());
+
+                String status = (String) response.get("status");
+                if ("first_login".equals(status)) {
+                    Log.d("SignInActivity", "首次登录，跳转到 UserEditActivity");
+                    Intent intent = new Intent(SignInActivity.this, UserEditActivity.class);
+                    intent.putExtra("user_email", email);
+                    startActivity(intent);
+                } else {
+                    Log.d("SignInActivity", "普通登录，跳转到 MainActivity");
+                    Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("SignInActivity", "登录失败：" + errorMessage);
+                ToastView.showCustomToast(SignInActivity.this, "登录失败：" + errorMessage);
+            }
+        });
+    }
+
 
     @Override
     protected void onDestroy() {
