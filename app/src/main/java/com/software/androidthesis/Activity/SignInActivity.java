@@ -2,8 +2,13 @@ package com.software.androidthesis.Activity;
 
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -26,6 +31,7 @@ import java.util.concurrent.Executors;
 
 public class SignInActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 100;
     private EditText emailInput, codeInput;
     private Button sendCodeBtn, verifyBtn;
     private String userEmail;
@@ -46,10 +52,14 @@ public class SignInActivity extends AppCompatActivity {
         sendCodeBtn = findViewById(R.id.Txt_verify_number);
         verifyBtn = findViewById(R.id.btn_verify);
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_EXTERNAL_STORAGE);
+        }
+
         // 初始化 ApiServiceImpl
         apiServiceImpl = new ApiServiceImpl();
 
-// 发送验证码按钮
+        // 发送验证码按钮
         sendCodeBtn.setOnClickListener(v -> {
             userEmail = emailInput.getText().toString().trim();
             if (userEmail.isEmpty() || !userEmail.contains("@")) {
@@ -138,17 +148,30 @@ public class SignInActivity extends AppCompatActivity {
             public void onSuccess(Map<String, Object> response) {
                 Log.d("SignInActivity", "登录成功，返回数据：" + response.toString());
 
-                String status = (String) response.get("status");
-                if ("first_login".equals(status)) {
-                    Log.d("SignInActivity", "首次登录，跳转到 UserEditActivity");
-                    Intent intent = new Intent(SignInActivity.this, UserEditActivity.class);
-                    intent.putExtra("user_email", email);
-                    startActivity(intent);
-                } else {
-                    Log.d("SignInActivity", "普通登录，跳转到 MainActivity");
-                    Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                    startActivity(intent);
+                // 打印返回的 response 内容，以便调试
+                for (Map.Entry<String, Object> entry : response.entrySet()) {
+                    Log.d("SignInActivity", "返回字段：" + entry.getKey() + " = " + entry.getValue());
                 }
+
+                Object userIdObject = response.get("id");
+                if (userIdObject != null) {
+                    long userId = ((Double) userIdObject).longValue();  // 先转换为 Double，再转换为 long
+
+                    // 存储 userId 到 SharedPreferences
+                    SharedPreferences preferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putLong("id", userId);  // 存储用户ID
+                    editor.apply();
+
+                    Log.d("SignInActivity", "用户ID已保存到SharedPreferences: " + userId);
+                } else {
+                    Log.e("SignInActivity", "返回数据中没有 id 字段");
+                }
+
+                // 跳转到 MainActivity
+                Log.d("SignInActivity", "普通登录，跳转到 MainActivity");
+                Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                startActivity(intent);
             }
 
             @Override

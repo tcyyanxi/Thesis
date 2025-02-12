@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -12,6 +13,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.software.androidThesis.R;
 import com.software.androidthesis.Adapter.CustomViewPager;
 import com.software.androidthesis.Adapter.FragmentAdapter;
+import com.software.androidthesis.Fragment.DFragment;
 
 public class MainActivity extends AppCompatActivity {
     private CustomViewPager mViewPager;
@@ -22,7 +24,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
         initView();
+
 
     }
 
