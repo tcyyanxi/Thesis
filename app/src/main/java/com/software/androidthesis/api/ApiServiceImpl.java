@@ -5,10 +5,13 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.software.androidthesis.api.ApiService;
+import com.software.androidthesis.entity.Article;
 import com.software.androidthesis.entity.UserEdit;
+import com.software.androidthesis.entity.Word;
 
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -26,7 +29,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ApiServiceImpl {
 
-    private static final String BASE_URL = "http://192.168.1.197:2388/tancy/";  // 后端服务器URL
+    private static final String BASE_URL = "http://192.168.137.1:2388/tancy/";  // 后端服务器URL
     private ApiService apiService;
 
     // 构造方法，初始化 Retrofit 和 ApiService
@@ -123,10 +126,153 @@ public class ApiServiceImpl {
             }
         });
     }
+    // 获取书籍列表接口请求
+    public void getBooks(ApiCallback<List<String>> callback) {
+        // 调用 Retrofit API 获取书籍列表
+        Call<List<String>> call = apiService.getBooks();
+
+        call.enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("获取书籍列表失败: " + response.code() + " " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+            }
+        });
+    }
+
+    // 获取单元列表接口请求
+    public void getUnits(String book, ApiCallback<List<String>> callback) {
+        // 调用 Retrofit API 获取单元列表
+        Call<List<String>> call = apiService.getUnits(book);
+
+        call.enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("获取单元列表失败: " + response.code() + " " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+            }
+        });
+    }
+
+    // 获取单词列表接口请求
+    public void getWords(String book, String unit, ApiCallback<List<Word>> callback) {
+        // 调用 Retrofit API 获取单词列表
+        Call<List<Word>> call = apiService.getWords(book, unit);
+
+        call.enqueue(new Callback<List<Word>>() {
+            @Override
+            public void onResponse(Call<List<Word>> call, Response<List<Word>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("获取单词列表失败: " + response.code() + " " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Word>> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+            }
+        });
+    }
+
+    public void getWordAll(String word, ApiCallback<Word> callback) {
+        // 调用 Retrofit API 获取单词详细信息
+        Call<Word> call = apiService.getWordAll(word);
+
+        call.enqueue(new Callback<Word>() {
+            @Override
+            public void onResponse(Call<Word> call, Response<Word> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());  // 请求成功，返回 Word 对象
+                } else {
+                    callback.onError("获取单词信息失败: " + response.code() + " " + response.message());  // 错误时回调
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Word> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());  // 网络请求失败时回调
+            }
+        });
+    }
+
+    public void getArticle(String category, ApiCallback<List<Article>> callback) {
+        // 如果是精品阅读请求所有文章
+        if ("精选阅读".equals(category)) {
+            getAllArticles(callback);
+        } else {
+            // 否则按类别获取文章
+            getArticlesByCategory(category, callback);
+        }
+    }
+
+    // 获取所有文章的方法
+    private void getAllArticles(ApiCallback<List<Article>> callback) {
+        Call<List<Article>> call = apiService.getArticles(); // 调用接口获取所有文章
+
+        call.enqueue(new Callback<List<Article>>() {
+            @Override
+            public void onResponse(Call<List<Article>> call, Response<List<Article>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Article>> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    // 根据分类获取文章的方法
+    private void getArticlesByCategory(String category, ApiCallback<List<Article>> callback) {
+        // 假设你有一个按分类获取文章的接口
+        Call<List<Article>> call = apiService.getArticle(category);
+
+        call.enqueue(new Callback<List<Article>>() {
+            @Override
+            public void onResponse(Call<List<Article>> call, Response<List<Article>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Article>> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+
+
+
 
     // 定义回调接口
-    public interface ApiCallback {
-        void onSuccess(Map<String, Object> response);
+    public interface ApiCallback<T> {
+        void onSuccess(T response);
         void onError(String errorMessage);
     }
 }

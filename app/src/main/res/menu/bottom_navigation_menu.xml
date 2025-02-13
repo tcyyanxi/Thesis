@@ -11,13 +11,13 @@
 
     <item
         android:id="@+id/navigation_b"
-        android:icon="@drawable/headset"
+        android:icon="@drawable/book"
         android:title="文库"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/navigation_c"
-        android:icon="@drawable/book"
+        android:icon="@drawable/chart"
         android:title="统计"
         app:showAsAction="always" />
 

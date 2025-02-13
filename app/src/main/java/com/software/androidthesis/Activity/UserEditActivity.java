@@ -168,7 +168,7 @@ public class UserEditActivity extends AppCompatActivity {
 
             // 调用 API 更新用户信息
             ApiServiceImpl apiServiceImpl = new ApiServiceImpl();
-            apiServiceImpl.updateUserInfo(userJson, new ApiServiceImpl.ApiCallback() {
+            apiServiceImpl.updateUserInfo(userJson, new ApiServiceImpl.ApiCallback<Map<String, Object>>() {
                 @Override
                 public void onSuccess(Map<String, Object> response) {
                     runOnUiThread(() -> {
@@ -190,6 +190,7 @@ public class UserEditActivity extends AppCompatActivity {
                     runOnUiThread(() -> Toast.makeText(UserEditActivity.this, errorMessage, Toast.LENGTH_SHORT).show());
                 }
             });
+
         });
 
         // 点击头像，弹出 BottomSheetDialog
@@ -228,7 +229,7 @@ public class UserEditActivity extends AppCompatActivity {
      */
     private void fetchUserInfo(Long userId) {
         ApiServiceImpl apiServiceImpl = new ApiServiceImpl();
-        apiServiceImpl.getUserInfo(userId, new ApiServiceImpl.ApiCallback() {
+        apiServiceImpl.getUserInfo(userId, new ApiServiceImpl.ApiCallback<Map<String, Object>>() {
             @Override
             public void onSuccess(Map<String, Object> response) {
                 runOnUiThread(() -> {
@@ -276,6 +277,7 @@ public class UserEditActivity extends AppCompatActivity {
             }
         });
     }
+
 
     /**
      * 显示头像的 Dialog

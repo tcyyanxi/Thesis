@@ -38,6 +38,12 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name="com.software.androidthesis.Activity.WordActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.software.androidthesis.Activity.WordListActivity"
+            android:exported="false" />
+        <activity
             android:name="com.software.androidthesis.Activity.UserEditActivity"
             android:exported="false" />
         <activity

@@ -1,22 +1,16 @@
 package com.software.androidthesis.Fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.software.androidThesis.R;
-import com.software.androidthesis.Adapter.CategoryAdapter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @Auther : Tcy
@@ -25,38 +19,37 @@ import java.util.List;
  */
 public class BFragment extends Fragment {
 
-    private ViewPager2 viewPager2;
+    private MaterialButtonToggleGroup buttonGroup;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_b, container, false);
-        RecyclerView recyclerView = view.findViewById(R.id.leftRv);
-        viewPager2 = view.findViewById(R.id.viewPager);
-        List<String> categoryList =new ArrayList<>(Arrays.asList(
-                "精选阅读","人工智能","前沿技术","太空宇宙","生物医疗","自然科学",
-                "环境生态","历史文化","艺术文学","休闲生活","社会现象","成长教育",
-                "心理感情"));
+        // 初始化按钮
+        buttonGroup = view.findViewById(R.id.buttonGroup);
 
-        //左列表adapter
-        CategoryAdapter categoryAdapter = new CategoryAdapter(getContext(), categoryList);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        categoryAdapter.setOnItemClickListener(category -> {
-            //替换子fragment
-            Log.d("CFragment", "onItemClick: " + category);
-            int position = categoryList.indexOf(category);
-            replaceChildFragment(position);
-            //
+        // 设置按钮组的选择监听器
+        buttonGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return; // 如果按钮被取消选中，直接返回
+            switch (checkedId) {
+                case R.id.button1:
+                    loadChildFragment(new BChildArticleCategoryFragment());
+                    break;
+                case R.id.button2:
+                    loadChildFragment(new BChildWordFragment());
+                    break;
+            }
         });
-        recyclerView.setAdapter(categoryAdapter);
+
+        // 默认加载第一个子 Fragment 并选中第一个按钮
+        loadChildFragment(new ChildFragment1());
+        buttonGroup.check(R.id.button1);
         return view;
     }
 
-    //切换子fragment
-    private void replaceChildFragment(int position) {
-        // 设置ViewPager2到指定位置
-        if (viewPager2 != null) { // 防止空指针异常
-            viewPager2.setCurrentItem(position, false); // 设置ViewPager2到指定位置
-        } else {
-            Log.e("BFragment", "viewPager2 is null when trying to replace fragment");
-        }
+    private void loadChildFragment(Fragment fragment) {
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        transaction.replace(R.id.child_fragment_container, fragment);
+        transaction.commit();
     }
+
+
 }

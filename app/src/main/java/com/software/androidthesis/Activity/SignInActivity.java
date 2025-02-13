@@ -143,7 +143,8 @@ public class SignInActivity extends AppCompatActivity {
     private void loginUser(String email) {
         Log.d("SignInActivity", "正在调用 loginUser 方法，email：" + email);
 
-        apiServiceImpl.login(email, new ApiServiceImpl.ApiCallback() {
+        // 确保回调接口指定正确的类型 ApiCallback<Map<String, Object>>
+        apiServiceImpl.login(email, new ApiServiceImpl.ApiCallback<Map<String, Object>>() {
             @Override
             public void onSuccess(Map<String, Object> response) {
                 Log.d("SignInActivity", "登录成功，返回数据：" + response.toString());

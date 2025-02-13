@@ -1,12 +1,14 @@
 package com.software.androidthesis.Adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.software.androidThesis.R;
@@ -20,17 +22,19 @@ import java.util.List;
  * @Decription:类别的adapter
  */
 
-public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
+public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder> {
     private Context context;
     private List<String> categories;
     private OnItemClickListener mListener;
-    //是否选择
-    private int selectedPosition = -1;
+
+    // 选中项的位置，默认是“精选阅读”
+    private int selectedPosition = 0;  // 假设默认选中第一项
 
     // 定义一个接口用于处理item点击事件
     public interface OnItemClickListener {
         void onItemClick(String category);
     }
+
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
@@ -38,9 +42,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
     public CategoryAdapter(Context context, List<String> categories) {
         this.context = context;
         this.categories = categories;
-
     }
 
+    @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(context).inflate(R.layout.item_library_left, parent, false);
         return new CategoryViewHolder(itemView);
@@ -50,21 +54,25 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         String category = categories.get(position);
         holder.categoryNameTextView.setText(category);
-        holder.itemView.setSelected( position == selectedPosition);
-        holder.itemView.setOnClickListener(v ->{
+
+        // 处理选中项的样式
+        if (position == selectedPosition) {
+            // 设置选中项的背景为 R.drawable.article_background
+            holder.itemView.setBackground(ContextCompat.getDrawable(context, R.drawable.article_background));
+        } else {
+            // 设置未选中项的背景为透明
+            holder.itemView.setBackgroundColor(Color.TRANSPARENT);
+        }
+
+        // 设置点击事件
+        holder.itemView.setOnClickListener(v -> {
             int currentPosition = holder.getAdapterPosition();
-            if (selectedPosition == currentPosition) {
-                // 如果点击的是已选中的项，则取消选中并重置selectedPosition
-                selectedPosition = -1;
-            } else {
-                selectedPosition = currentPosition;
+            if (selectedPosition != currentPosition) {
+                selectedPosition = currentPosition;  // 更新选中项
+                notifyDataSetChanged();  // 刷新适配器，更新样式
             }
-            // 通知数据集变更，重新绑定所有ViewHolder
-            notifyDataSetChanged();
-            if(mListener != null){
+            if (mListener != null) {
                 mListener.onItemClick(categories.get(currentPosition));
-            }else {
-                Log.d("CategoryAdapter", "mListener is null"+ currentPosition);
             }
         });
     }
@@ -74,5 +82,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
         return categories.size();
     }
 
+    // 获取选中项
+    public int getSelectedPosition() {
+        return selectedPosition;
+    }
 }
 
