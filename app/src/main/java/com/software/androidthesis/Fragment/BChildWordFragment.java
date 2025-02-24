@@ -1,29 +1,26 @@
 package com.software.androidthesis.Fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.software.androidThesis.R;
-import com.software.androidthesis.Activity.WordListActivity;
+import com.software.androidthesis.Adapter.BookAdapter;
 import com.software.androidthesis.api.ApiServiceImpl;
+import com.software.androidthesis.entity.BookItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Auther : Tcy
@@ -31,34 +28,26 @@ import java.util.Map;
  * @Decription:
  */
 public class BChildWordFragment extends Fragment {
-    private ExpandableListView expandableListView;
-    private Map<String, List<String>> bookUnitMap = new HashMap<>();
-    private List<String> bookList = new ArrayList<>();
-    private SimpleExpandableListAdapter adapter;
-    // 预定义书籍的固定顺序
-    private List<String> predefinedOrder = Arrays.asList(
-            "七上", "七下", "八上", "八下", "九全"
-    );
+    private ListView listView;
+    private List<BookItem> bookList = new ArrayList<>();
+    private BookAdapter adapter;
 
+    // 预定义书籍的固定顺序
+    private List<String> predefinedOrder = Arrays.asList("七上", "七下", "八上", "八下", "九全");
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_b_word_list, container, false);
-        expandableListView = view.findViewById(R.id.expandableListView);
+        listView = view.findViewById(R.id.listView); // 确保这里的 ID 对应你的 XML 文件中的 ListView
+
+        if (bookList == null) {
+            bookList = new ArrayList<>();
+        }
+        adapter = new BookAdapter(getContext(), bookList);
+        listView.setAdapter(adapter);
 
         fetchBooksAndUnits();
-
-        expandableListView.setOnChildClickListener((parent, v, groupPosition, childPosition, id) -> {
-            String book = bookList.get(groupPosition);
-            String unit = bookUnitMap.get(book).get(childPosition);
-
-            Intent intent = new Intent(getActivity(), WordListActivity.class);
-            intent.putExtra("book", book);
-            intent.putExtra("unit", unit);
-            startActivity(intent);
-            return true;
-        });
 
         return view;
     }
@@ -76,24 +65,15 @@ public class BChildWordFragment extends Fragment {
                         public int compare(String book1, String book2) {
                             int index1 = predefinedOrder.indexOf(book1);
                             int index2 = predefinedOrder.indexOf(book2);
-
-                            // 如果没有在预定义顺序中找到，按照原始顺序显示
-                            if (index1 == -1 && index2 == -1) {
-                                return 0;
-                            }
-                            if (index1 == -1) {
-                                return 1;  // book1 在预定义顺序中找不到，排到后面
-                            }
-                            if (index2 == -1) {
-                                return -1; // book2 在预定义顺序中找不到，排到后面
-                            }
+                            if (index1 == -1 && index2 == -1) return 0;
+                            if (index1 == -1) return 1;
+                            if (index2 == -1) return -1;
                             return Integer.compare(index1, index2);
                         }
                     });
 
                     // 假设每个书籍和单元都有相关的内容
                     for (String book : response) {
-                        // 获取每本书的单元
                         fetchUnitsForBook(book);
                     }
                 }
@@ -112,9 +92,7 @@ public class BChildWordFragment extends Fragment {
             @Override
             public void onSuccess(List<String> units) {
                 if (units != null && !units.isEmpty()) {
-                    // 存储单元到相应书籍下
-                    bookUnitMap.put(book, units);
-                    bookList.add(book);  // 添加book到bookList
+                    bookList.add(new BookItem(book, units));  // 添加书籍及其单元到列表
                 }
                 updateAdapter();  // 更新适配器
             }
@@ -127,36 +105,26 @@ public class BChildWordFragment extends Fragment {
     }
 
     private void updateAdapter() {
-        List<Map<String, String>> groupData = new ArrayList<>();
-        List<List<Map<String, String>>> childData = new ArrayList<>();
-
-        for (String book : bookList) {
-            Map<String, String> group = new HashMap<>();
-            group.put("book", book);
-            groupData.add(group);
-
-            List<Map<String, String>> children = new ArrayList<>();
-            for (String unit : bookUnitMap.get(book)) {
-                Map<String, String> child = new HashMap<>();
-                child.put("unit", unit);
-                children.add(child);
-            }
-            childData.add(children);
+        if (getContext() == null) {
+            Log.e("BChildWordFragment", "Context is null, skipping adapter update");
+            return;
         }
 
-        adapter = new SimpleExpandableListAdapter(
-                getContext(),
-                groupData,
-                android.R.layout.simple_expandable_list_item_1,
-                new String[]{"book"},
-                new int[]{android.R.id.text1},
-                childData,
-                android.R.layout.simple_expandable_list_item_2,
-                new String[]{"unit"},
-                new int[]{android.R.id.text1}
-        );
+        if (bookList.isEmpty()) {
+            Log.w("BChildWordFragment", "Book list is empty, skipping adapter update");
+            return;
+        }
 
-        getActivity().runOnUiThread(() -> expandableListView.setAdapter(adapter));
+        if (adapter == null) {
+            adapter = new BookAdapter(getContext(), bookList);
+            getActivity().runOnUiThread(() -> {
+                if (listView != null) {
+                    listView.setAdapter(adapter);
+                }
+            });
+        } else {
+            getActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
+        }
     }
 
 }

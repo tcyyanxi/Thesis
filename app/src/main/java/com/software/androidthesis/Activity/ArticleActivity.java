@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -70,10 +71,13 @@ public class ArticleActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 1;
     private static final int REQUEST_CODE_RECORD_AUDIO = 101;
     private static final int REQUEST_CODE_MIC_PERMISSION = 103;
-    private TextView articleTextView, resultTextView;
+    private TextView articleTextView, resultTextView,titleTextView;
     private SpannableString spannableText; // 用于操作的 SpannableString
     private String selectedSentence; // 当前选中的句子
     private SpeechEvaluator mIse;
+
+    private int articleId;
+    private String articleTitle, articleContent;
 
     private WaveView waveView;
     private Button button2;//录音按钮
@@ -99,6 +103,12 @@ public class ArticleActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article);
+
+        // 获取传递过来的数据
+        Intent intent = getIntent();
+        articleId = intent.getIntExtra("articleId", -1); // 获取文章ID
+        articleTitle = intent.getStringExtra("title"); // 获取文章标题
+        articleContent = intent.getStringExtra("content"); // 获取文章内容
 
         player = new SimpleExoPlayer.Builder(this).build();
         // 初始化播放器
@@ -132,6 +142,7 @@ public class ArticleActivity extends AppCompatActivity {
 
         articleTextView = findViewById(R.id.articleTextView);
         resultTextView = findViewById(R.id.textView3);
+        titleTextView = findViewById(R.id.article_title);
         waveView = findViewById(R.id.waveView);
         button2 = findViewById(R.id.button2);
         btnSpeak = findViewById(R.id.button1);
@@ -144,20 +155,17 @@ public class ArticleActivity extends AppCompatActivity {
         backButton.setVisibility(View.GONE);
         finishButton.setVisibility(View.GONE);
 
+        titleTextView.setText(articleTitle);
+
         // 设置波浪参数
         setupWaveView();
 
         // 初始状态：隐藏波浪按钮
         waveView.setVisibility(View.GONE);
-
-        // 示例文章内容
-        String articleContent = "This is the first sentence! Here is another one; it uses a semicolon. What about this one?";
-
         // 使用 SpannableString 包装文章内容
         spannableText = new SpannableString(articleContent);
 
-        // 将文章按句分割，支持 !；：等符号
-        sentences = articleContent.split("(?<=[.!?;:])");
+        sentences = articleContent.split("(?<=[.!?;:,])|(?<=\\b(and|but|or|so|yet|for|nor|because|however|although|therefore|meanwhile|despite)\\b)|(?<=\\[|\\]|\\(|\\)|\\{|\\})");
         for (String sentence : sentences) {
             Log.d(TAG, "Sentence: " + sentence); // 输出每个句子
         }
@@ -686,7 +694,7 @@ public class ArticleActivity extends AppCompatActivity {
             // 判断评分是否低于 4.5，并且该单词是否在当前句子中
             try {
                 float score = Float.parseFloat(wordScore);
-                if (score < 4.5 && currentSentence.contains(wordContent)) {
+                if (score < 3.5 && currentSentence.contains(wordContent)) {
                     // 正则匹配单词，确保匹配完整单词
                     Pattern pattern = Pattern.compile("\\b" + Pattern.quote(wordContent) + "\\b"); // 使用 \b 确保匹配完整单词
                     Matcher matcher = pattern.matcher(currentSentence);

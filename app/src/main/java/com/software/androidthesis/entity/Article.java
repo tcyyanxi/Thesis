@@ -12,6 +12,16 @@ public class Article {
     private int articlesSum;
     private String category;
 
+    private byte[] img;
+
+    public byte[] getImg() {
+        return img;
+    }
+
+    public void setImg(byte[] img) {
+        this.img = img;
+    }
+
     public int getArticleId() {
         return articleId;
     }

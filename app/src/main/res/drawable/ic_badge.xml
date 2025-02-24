@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="?attr/colorError" /> <!-- 圆形背景色 -->
+    <size
+        android:width="10dp"
+        android:height="10dp"/> <!-- 宽高相同，形成圆形 -->
+    <corners android:radius="20dp" /> <!-- 圆角半径是宽度的一半 -->
+</shape>

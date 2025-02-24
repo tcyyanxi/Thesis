@@ -1,16 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.software.androidthesis.Fragment.AFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:textSize="100dp"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:orientation="horizontal"/>
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/unselected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:fontFamily="@font/text2"
+        android:text="目前还没有单词计划"
+        android:textSize="40sp" />
+
+
+    <RelativeLayout
+        android:id="@+id/layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            style="?attr/materialIconButtonStyle"
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            app:icon="@drawable/volume"/>
+
+        <com.software.androidthesis.view.WaveView
+            android:id="@+id/waveView"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="@android:color/white"
+            android:padding="8dp"
+            android:layout_below="@id/button1"
+            tools:ignore="MissingConstraints"
+            android:layout_centerHorizontal="true" />
+        <!-- 按钮 -->
+        <Button
+            android:id="@+id/button2"
+            android:layout_below="@id/button1"
+            style="?attr/materialIconButtonFilledStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/voice"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="60dp"
+            android:layout_below="@id/button1"
+            android:layout_marginBottom="50dp"
+            android:layout_centerHorizontal="true"></TextView>
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

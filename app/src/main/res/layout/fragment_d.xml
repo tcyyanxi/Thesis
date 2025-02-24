@@ -1,16 +1,299 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/gradient_background"
-    tools:context="com.software.androidthesis.Fragment.DFragment">
+    tools:context="com.software.androidthesis.Fragment.DFragment"
+    android:orientation="vertical">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            >
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/grass1"
+                android:layout_alignParentRight="true"
+                ></ImageView>
+            <!-- 头像    -->
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/image_avatar"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginLeft="30dp"
+                android:src="@drawable/friend_item"
+                app:civ_border_width="0dp" />
+            <TextView
+                android:id="@+id/text_name"
+                android:layout_toRightOf="@+id/image_avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="20dp"
+                android:fontFamily="@font/text3"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:text="齐物">
+            </TextView>
+
+            <TextView
+                android:id="@+id/text_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_name"
+                android:layout_toRightOf="@+id/image_avatar"
+                android:text="uid:00000001"
+                android:layout_marginLeft="20dp"
+                android:textColor="?attr/colorPrimaryDark"></TextView>
+
+        </RelativeLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/materialCardViewElevatedStyle"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        app:cardBackgroundColor="?attr/colorPrimaryContainer"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/text2"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="10dp"
+                    android:text="今日记录"
+                    android:textSize="20sp"
+                    ></TextView>
+
+            </RelativeLayout>
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:background="@drawable/white_background3"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:id="@+id/text_min"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="35dp"
+                        android:text="0"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="25sp"
+                        android:textStyle="bold"></TextView>
+                    <TextView
+                        android:layout_toEndOf="@+id/text_min"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:textSize="10sp"
+                        android:layout_marginLeft="5dp"
+                        android:text="分钟"></TextView>
+                    <TextView
+                        android:layout_below="@+id/text_min"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="总阅读时长"
+                        android:textSize="12sp"
+                        android:layout_centerHorizontal="true"
+                        ></TextView>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:background="@drawable/white_background3"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:id="@+id/text_read_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="0"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="25sp"
+                        android:textStyle="bold"></TextView>
+                    <TextView
+                        android:layout_toEndOf="@+id/text_read_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:textSize="10sp"
+                        android:text="个"></TextView>
+                    <TextView
+                        android:layout_below="@+id/text_read_count"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="总阅读单词数"
+                        android:textSize="12sp"
+                        android:layout_centerHorizontal="true"
+                        ></TextView>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:background="@drawable/white_background3"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:id="@+id/text_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="0"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="25sp"
+                        android:textStyle="bold"></TextView>
+                    <TextView
+                        android:layout_toEndOf="@+id/text_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:textSize="10sp"
+                        android:text="个"></TextView>
+                    <TextView
+                        android:layout_below="@+id/text_count"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="总词汇量"
+                        android:textSize="12sp"
+                        android:layout_centerHorizontal="true"
+                        ></TextView>
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="设置"
+        android:textSize="20sp"
+        android:layout_marginLeft="30dp"
+        android:fontFamily="@font/text2"
+        >
+    </TextView>
 
     <Button
+        style="@style/Widget.Material3.Button.TextButton"
         android:id="@+id/userEditBtn"
-        android:layout_margin="90dp"
         android:text="个人资料编辑"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"></Button>
+        android:textColor="#000"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/pen"
+        android:layout_marginLeft="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-</FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        >
+
+        <Button
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="start|center_vertical"
+            android:text="今日计划学习单词数"
+            android:textColor="#000"
+            app:icon="@drawable/pen" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_centerInParent="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="40dp"
+            app:cardBackgroundColor="?attr/colorPrimaryContainer">
+
+            <EditText
+                android:id="@+id/edit_word_count"
+                android:layout_marginTop="10dp"
+                android:textSize="12sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="center" />
+        </com.google.android.material.card.MaterialCardView>
+
+
+
+    </RelativeLayout>
+
+    <!--退出登录-->
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/btn_logout"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="退出登录"
+        app:strokeColor="?attr/colorPrimary"
+        android:textSize="20sp"
+        app:rippleColor="@color/m3_button_ripple_color_selector"
+        app:icon="@drawable/logout"
+        />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/grass3"
+            ></ImageView>
+
+    </RelativeLayout>
+
+</LinearLayout>

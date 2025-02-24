@@ -9,7 +9,6 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         tools:ignore="MissingClass">
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/top_bar"
@@ -48,18 +47,13 @@
                     android:gravity="center"
                     android:layout_height="wrap_content"></TextView>
 
-                <!--        <ImageView-->
-                <!--            android:id="@+id/articleCover"-->
-                <!--            android:layout_margin="20dp"-->
-                <!--            android:layout_width="match_parent"-->
-                <!--            android:src="@drawable/img_3"-->
-                <!--            android:layout_height="200dp"></ImageView>-->
                 <TextView
                     android:id="@+id/articleTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
                     android:text="11"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:lineSpacingExtra="6dp" />
 
             </LinearLayout>

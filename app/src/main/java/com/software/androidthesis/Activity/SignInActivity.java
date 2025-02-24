@@ -23,6 +23,8 @@ import com.software.androidthesis.api.ApiServiceImpl;
 import com.software.androidthesis.util.SendEmail;
 import com.software.androidthesis.view.ToastView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +34,9 @@ import java.util.concurrent.Executors;
 public class SignInActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 100;
+    private static final int REQUEST_CODE_MICROPHONE = 101;
+    private static final int REQUEST_CODE_EMAIL = 102; // 添加其他需要的权限
+
     private EditText emailInput, codeInput;
     private Button sendCodeBtn, verifyBtn;
     private String userEmail;
@@ -42,6 +47,7 @@ public class SignInActivity extends AppCompatActivity {
     private CountDownTimer countDownTimer; // 倒计时对象
     // Retrofit API服务接口
     private ApiServiceImpl apiServiceImpl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,9 +58,8 @@ public class SignInActivity extends AppCompatActivity {
         sendCodeBtn = findViewById(R.id.Txt_verify_number);
         verifyBtn = findViewById(R.id.btn_verify);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_EXTERNAL_STORAGE);
-        }
+        // 请求权限
+        requestPermissions();
 
         // 初始化 ApiServiceImpl
         apiServiceImpl = new ApiServiceImpl();
@@ -104,6 +109,27 @@ public class SignInActivity extends AppCompatActivity {
             // 验证码正确，进行后端登录操作
             loginUser(userEmail);
         });
+    }
+
+    /**
+     * 请求所有需要的权限
+     */
+    private void requestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.RECORD_AUDIO);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.INTERNET);
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), REQUEST_CODE_EMAIL);
+        }
     }
 
     /**
@@ -182,7 +208,6 @@ public class SignInActivity extends AppCompatActivity {
             }
         });
     }
-
 
     @Override
     protected void onDestroy() {

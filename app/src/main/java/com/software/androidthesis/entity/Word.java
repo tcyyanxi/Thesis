@@ -13,6 +13,36 @@ public class Word {
     private String pro;
     private String mean;
 
+    private boolean isPermanentSelected;
+
+    private boolean matched; // 新增 matched 字段
+
+    public boolean isMatched() {
+        return matched;
+    }
+
+    public void setMatched(boolean matched) {
+        this.matched = matched;
+    }
+
+    public boolean isPermanentSelected() {
+        return isPermanentSelected;
+    }
+
+    public void setPermanentSelected(boolean permanentSelected) {
+        isPermanentSelected = permanentSelected;
+    }
+
+    private boolean selected;  // 用于标记该单词是否被选中
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
     public Long getWordId() {
         return wordId;
     }

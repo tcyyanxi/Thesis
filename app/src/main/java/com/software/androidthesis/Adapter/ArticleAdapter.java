@@ -1,6 +1,10 @@
 package com.software.androidthesis.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +15,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.software.androidThesis.R;
+import com.software.androidthesis.Activity.ArticleActivity;
 import com.software.androidthesis.entity.Article;
+
+import org.json.JSONArray;
 
 import java.util.List;
 
@@ -40,12 +48,35 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
 
     @Override
     public void onBindViewHolder(@NonNull ArticleViewHolder holder, int position) {
-        Article article = articleList.get(position);
+        final Article article = articleList.get(position);
         holder.title.setText(article.getTitle());
         holder.words.setText(article.getArticlesSum() + " words");
         holder.badge.setText(article.getCategory());
-        // 你可以设置文章的图片，如果需要的话
-        // Glide.with(context).load(article.getImageUrl()).into(holder.image);
+
+        // 直接处理 byte[] 图片数据
+        byte[] imageData = article.getImg();  // 获取 byte[] 数据
+        if (imageData != null && imageData.length > 0) {
+            try {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                holder.image.setImageBitmap(bitmap);
+            } catch (Exception e) {
+                // 处理图片解码错误
+                holder.image.setImageResource(R.drawable.ic_default_avatar); // 占位图
+            }
+        } else {
+            holder.image.setImageResource(R.drawable.ic_default_avatar); // 占位图
+        }
+
+        // 为每个 item 设置点击事件
+        holder.itemView.setOnClickListener(v -> {
+            // 创建 Intent 跳转到 ArticleActivity
+            Intent intent = new Intent(context, ArticleActivity.class);
+            // 将数据传递给 ArticleActivity
+            intent.putExtra("articleId", article.getArticleId());
+            intent.putExtra("title", article.getTitle());
+            intent.putExtra("content", article.getContent());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -66,4 +97,3 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         }
     }
 }
-

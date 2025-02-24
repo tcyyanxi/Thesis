@@ -5,8 +5,10 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <ExpandableListView
-        android:id="@+id/expandableListView"
+    <ListView
+        android:id="@+id/listView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:scrollbars="none"/>
 </LinearLayout>

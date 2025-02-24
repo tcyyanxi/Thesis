@@ -3,19 +3,25 @@ package com.software.androidthesis.api;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.software.androidthesis.api.ApiService;
 import com.software.androidthesis.entity.Article;
 import com.software.androidthesis.entity.UserEdit;
 import com.software.androidthesis.entity.Word;
+import com.software.androidthesis.entity.WordDTO;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,14 +40,30 @@ public class ApiServiceImpl {
 
     // 构造方法，初始化 Retrofit 和 ApiService
     public ApiServiceImpl() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)  // 设置基础URL
-                .addConverterFactory(GsonConverterFactory.create())  // 使用 Gson 转换器
+        // 创建 OkHttp 的日志拦截器
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);  // 记录请求和响应的完整内容
+
+        // 配置 OkHttpClient
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)  // 添加日志拦截器
                 .build();
 
+        // 使用 Gson 转换器并设置宽松模式
+        Gson gson = new GsonBuilder()
+                .setLenient()  // 设置宽松模式，允许解析不标准的JSON
+                .create();
+
+        // 创建 Retrofit 实例
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)  // 设置基础URL
+                .client(okHttpClient)  // 设置 OkHttpClient
+                .addConverterFactory(GsonConverterFactory.create(gson))  // 使用 Gson 转换器
+                .build();
+
+        // 初始化 apiService
         apiService = retrofit.create(ApiService.class);
     }
-
     // 登录接口请求方法
     public void login(String email, ApiCallback callback) {
         Log.d("ApiServiceImpl", "开始登录请求，email：" + email);
@@ -267,7 +289,132 @@ public class ApiServiceImpl {
     }
 
 
+    public void addUserWords(Long id, List<String> words) {
+        Call<String> call = apiService.addUserWords(id, words);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String result = response.body();
+                    Log.d("ApiService", "Response: " + result);  // 打印响应体内容
 
+                    // 解析 JSON
+                    try {
+                        String responseBody = response.body();
+                        JSONObject jsonObject = new JSONObject(responseBody);
+                        Log.d("ApiService", "Parsed JSON: " + jsonObject.toString());
+                    } catch (JSONException e) {
+                        Log.e("ApiService", "JSON parsing error", e);
+                    }
+
+                } else {
+                    Log.e("ApiService", "Failed to add user words: " + response.message());
+                    Log.e("ApiService", "Response code: " + response.code());
+
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBody = response.errorBody().string();
+                            Log.e("ApiService", "Error body: " + errorBody);  // 打印错误响应体
+                        } catch (IOException e) {
+                            Log.e("ApiService", "Error reading error body", e);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e("ApiService", "Error: " + t.getMessage());
+            }
+        });
+    }
+    public void getSelectedWords(Long userId, ApiCallback<List<String>> callback) {
+        Log.d("ApiServiceImpl", "用户ID已从SharedPreferences: " + userId);
+        String url = BASE_URL + "user-words/selected?id=" + userId.toString();
+        Log.d("ApiService", "Request URL: " + url);  // 打印请求 URL
+
+        Call<List<String>> call = apiService.getSelectedWords(userId);
+        call.enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                if (response.isSuccessful()) {
+                    Log.d("ApiService", "Response: " + response.body());
+                    callback.onSuccess(response.body());
+                } else {
+                    Log.e("ApiService", "Failed to get selected words: " + response.message());
+                    callback.onError("获取已选单词失败");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                Log.e("ApiService", "Error: " + t.getMessage());
+                callback.onError("网络错误: " + t.getMessage());
+            }
+        });
+    }
+
+    // 获取单词信息
+    public void getWords(Long id, String date, ApiCallback<List<WordDTO>> callback) {
+        // 打印请求参数
+        Log.d("API", "Requesting words with ID: " + id + " and Date: " + date);
+
+        Call<List<WordDTO>> call = apiService.getWords(id, date);
+
+        call.enqueue(new Callback<List<WordDTO>>() {
+            @Override
+            public void onResponse(Call<List<WordDTO>> call, Response<List<WordDTO>> response) {
+                // 打印响应信息
+                Log.d("API", "Response code: " + response.code());
+                Log.d("API", "Response message: " + response.message());
+
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("API", "Fetched " + response.body().size() + " words.");
+                    callback.onSuccess(response.body());
+                } else {
+                    // 打印详细错误信息
+                    Log.e("API", "Response not successful. Body: " + response.body());
+                    callback.onError("没有获取到数据或发生错误");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<WordDTO>> call, Throwable t) {
+                // 打印失败的错误信息
+                Log.e("API", "Request failed: " + t.getMessage());
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+
+
+
+    public void updateUserWord(Long id, String word, int count, String date, ApiCallback<String> callback) {
+        Log.d("ApiServiceImpl", "开始更新用户单词请求，id：" + id + ", word：" + word);
+
+        // 调用 ApiService 中的 updateUserWord 接口，返回类型修改为 String
+        Call<String> call = apiService.updateUserWord(id, word, count, date);
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    // 服务器返回的是简单的字符串
+                    Log.d("ApiServiceImpl", "更新成功，服务器返回：" + response.body());
+                    callback.onSuccess(response.body());  // 这里返回的应该是更新成功的字符串
+                } else {
+                    Log.e("ApiServiceImpl", "更新失败，错误代码：" + response.code());
+                    callback.onError("服务器返回错误：" + response.code());  // 请求失败通过回调返回错误信息
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e("ApiServiceImpl", "更新请求失败：" + t.getMessage());
+                callback.onError("网络错误：" + t.getMessage());  // 网络请求失败时的回调
+            }
+        });
+    }
 
 
     // 定义回调接口

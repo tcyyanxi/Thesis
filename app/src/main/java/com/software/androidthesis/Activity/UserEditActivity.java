@@ -84,6 +84,8 @@ public class UserEditActivity extends AppCompatActivity {
         // 获取用户ID（从SharedPreferences获取）
         SharedPreferences preferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
         userId = preferences.getLong("id", -1);  // 从SharedPreferences获取已登录用户的ID
+        Log.d("UserEditActivity", "用户ID已从SharedPreferences: " + userId);
+
 
         // 检查是否成功获取用户ID
         if (userId == -1) {
