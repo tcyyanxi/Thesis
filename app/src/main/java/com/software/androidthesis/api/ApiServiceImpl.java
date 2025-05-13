@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.software.androidthesis.api.ApiService;
 import com.software.androidthesis.entity.Article;
+import com.software.androidthesis.entity.UserArticle;
 import com.software.androidthesis.entity.UserEdit;
 import com.software.androidthesis.entity.Word;
 import com.software.androidthesis.entity.WordDTO;
@@ -415,6 +416,125 @@ public class ApiServiceImpl {
             }
         });
     }
+
+    public void getWordsByUserIdAndDate(Long id, String date, final ApiCallback<List<WordDTO>> callback) {
+        // 构建 API 请求
+        Call<List<WordDTO>> call = apiService.getWordsByUserIdAndDateListen(id, date);
+
+        // 执行请求
+        call.enqueue(new Callback<List<WordDTO>>() {
+            @Override
+            public void onResponse(Call<List<WordDTO>> call, Response<List<WordDTO>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // 如果请求成功，回调 onSuccess
+                    callback.onSuccess(response.body());
+                } else {
+                    // 请求失败，回调 onError
+                    callback.onError("没有获取到数据或发生错误");
+                    Log.e("API", "Response not successful. Body: " + response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<WordDTO>> call, Throwable t) {
+                // 请求失败，回调 onError
+                callback.onError(t.getMessage());
+                Log.e("API", "Error fetching words: " + t.getMessage());
+            }
+        });
+    }
+
+    // 获取用户文章记录
+    public void getUserArticle(Long id, Integer articleId, final ApiCallback<List<UserArticle>> callback) {
+        Call<List<UserArticle>> call = apiService.getUserArticle(id, articleId);
+
+        call.enqueue(new Callback<List<UserArticle>>() {
+            @Override
+            public void onResponse(Call<List<UserArticle>> call, Response<List<UserArticle>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("API", "返回的数据: " + new Gson().toJson(response.body())); // 打印 JSON 数据
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("查询失败: 服务器返回空数据或发生错误");
+                    Log.e("API", "查询失败: Response body is null. Code: " + response.code());
+                }
+            }
+
+
+            @Override
+            public void onFailure(Call<List<UserArticle>> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+                Log.e("API", "网络错误: " + t.getMessage(), t);
+            }
+        });
+    }
+
+    // 添加用户文章记录
+    public void addUserArticle(UserArticle userArticle, final ApiCallback<String> callback) {
+        Call<String> call = apiService.addUserArticle(userArticle);
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("添加失败: 服务器返回空数据或发生错误");
+                    Log.e("API", "添加失败: Response body is null. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+                Log.e("API", "网络错误: " + t.getMessage(), t);
+            }
+        });
+    }
+
+    public void reviewAndSchedule(Long userId, String word, int score, String date, final ApiCallback<String> callback) {
+        Call<String> call = apiService.reviewAndSchedule(userId, word, score, date);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("提交失败: 服务器返回空数据或发生错误");
+                    Log.e("API", "提交失败: Response body is null. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+                Log.e("API", "网络错误: " + t.getMessage(), t);
+            }
+        });
+    }
+
+    public void rescheduleUnfinishedTasks(Long userId, final ApiCallback<String> callback) {
+        Call<String> call = apiService.rescheduleUnfinishedTasks(userId);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("顺延失败: 服务器返回空数据或发生错误");
+                    Log.e("API", "顺延失败: Response body is null. Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                callback.onError("网络错误: " + t.getMessage());
+                Log.e("API", "网络错误: " + t.getMessage(), t);
+            }
+        });
+    }
+
+
 
 
     // 定义回调接口

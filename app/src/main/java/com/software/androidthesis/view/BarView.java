@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.software.androidthesis.entity.BarEntity;
@@ -39,29 +40,38 @@ public class BarView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Log.d("BarView", "🖌 onDraw 被调用了，高度: " + getHeight());
         if (data != null) {
-            // 高度填充
-            fillHeight = data.getFillScale() * getHeight() * animTimeCell;
-            if (fillHeight != 0) {
-                paint.setColor(Color.TRANSPARENT);
-                canvas.drawRect(0f, 0f, getWidth(), fillHeight, paint);
-                canvas.translate(0f, fillHeight);
-            }
-            // 一般
+            float totalHeight = getHeight();
+            float top = 0;
+
+            // 计算每一段高度（按比例 * 动画进度）
+            float fillHeight = data.getFillScale() * totalHeight * animTimeCell;
+            float negativeHeight = data.getNegativePer() * totalHeight * animTimeCell;
+            float neutralHeight = data.getNeutralPer() * totalHeight * animTimeCell;
+            float positiveHeight = data.getPositivePer() * totalHeight * animTimeCell;
+
+            // 一般（最底层）
             paint.setColor(Color.parseColor(data.negativeColor));
-            float negativeHeight = data.getNegativePer() * getHeight() * animTimeCell;
-            canvas.drawRect(0f, 0f, getWidth(), negativeHeight, paint);
-            canvas.translate(0f, negativeHeight);
+            canvas.drawRect(0f, totalHeight - negativeHeight, getWidth(), totalHeight, paint);
+            top = totalHeight - negativeHeight;
+
             // 良好
             paint.setColor(Color.parseColor(data.neutralColor));
-            float neutralHeight = data.getNeutralPer() * getHeight() * animTimeCell;
-            canvas.drawRect(0f, 0f, getWidth(), neutralHeight, paint);
-            canvas.translate(0f, neutralHeight);
+            canvas.drawRect(0f, top - neutralHeight, getWidth(), top, paint);
+            top -= neutralHeight;
+
             // 优秀
             paint.setColor(Color.parseColor(data.positiveColor));
-            float positiveHeight = data.getPositivePer() * getHeight() * animTimeCell;
-            canvas.drawRect(0f, 0f, getWidth(), positiveHeight, paint);
-            canvas.translate(0f, positiveHeight);
+            canvas.drawRect(0f, top - positiveHeight, getWidth(), top, paint);
+            top -= positiveHeight;
+            Log.d("BarView111111111111111111111", "negativePer=" + data.getNegativePer()
+                    + ", neutralPer=" + data.getNeutralPer()
+                    + ", positivePer=" + data.getPositivePer());
+
+        }
+        else {
+            Log.w("BarView", "⚠️ data 为空，无法绘制！");
         }
     }
 
@@ -83,6 +93,7 @@ public class BarView extends View {
 
     public void setData(BarEntity data) {
         this.data = data;
+        Log.d("BarView", "✅ setData 被调用了: " + data.getTitle());
         invalidate(); // 数据改变时重新绘制视图
     }
 

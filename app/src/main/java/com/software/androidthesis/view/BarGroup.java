@@ -2,6 +2,7 @@ package com.software.androidthesis.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -21,6 +22,7 @@ import java.util.List;
 
 public class BarGroup extends LinearLayout {
     private List<BarEntity> datas;
+
     public BarGroup(Context context) {
         super(context);
         init();
@@ -38,15 +40,13 @@ public class BarGroup extends LinearLayout {
 
     private void init() {
         setOrientation(HORIZONTAL);
-
     }
 
     public void setDatas(List<BarEntity> datas) {
-        if (datas != null) {
-            this.datas = datas;
-        }
+        this.datas = datas;
     }
 
+    // ✅ 新增此方法：设置高度并动态添加柱状图
     public void setHeight(float maxValue,int height) {
         if (datas != null) {
             for (int i = 0; i < datas.size(); i++) {
@@ -65,13 +65,15 @@ public class BarGroup extends LinearLayout {
         }
     }
 
-    /*字符串換行*/
+
+
+    // ✅ 支持文字自动换行
     private String getFeedString(String text) {
         StringBuilder sb = new StringBuilder(text);
         int length = sb.length();
         for (int i = 6; i < length; i += 7) {
             sb.insert(i, "\n");
-            length++; // Adjust length to account for the inserted newline
+            length++; // 插入换行后长度变化
         }
         return sb.toString();
     }

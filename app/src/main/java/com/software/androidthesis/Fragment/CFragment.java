@@ -38,9 +38,6 @@ public class CFragment extends Fragment {
                 case R.id.button2:
                     loadChildFragment(new ChildFragment2());
                     break;
-                case R.id.button3:
-                    loadChildFragment(new ChildFragment3());
-                    break;
             }
         });
 

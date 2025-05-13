@@ -2,17 +2,6 @@ package com.software.androidthesis.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
-
-import com.google.gson.Gson;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @Auther : Tcy
@@ -49,10 +38,18 @@ public class TokenManager {
      * @description 取userId
      * @date 2024/4/26 14:14
      */
-    public static String getUserId(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(TOKEN_PREFS, Context.MODE_PRIVATE);
-        return sharedPreferences.getString(USER_ID, null);
-    }
+//    public static Long getUserId(Context context) {
+//        SharedPreferences sharedPreferences = context.getSharedPreferences(TOKEN_PREFS, Context.MODE_PRIVATE);
+//        String userIdStr = sharedPreferences.getString(USER_ID, null);
+//        if (userIdStr != null) {
+//            try {
+//                return Long.parseLong(userIdStr);
+//            } catch (NumberFormatException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * @param context:

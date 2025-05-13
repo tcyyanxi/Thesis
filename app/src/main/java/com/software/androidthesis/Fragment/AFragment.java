@@ -2,6 +2,7 @@ package com.software.androidthesis.Fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -42,6 +43,7 @@ import android.content.SharedPreferences;
 
 import android.widget.Toast;
 
+import com.software.androidthesis.Activity.WordReviewListActivity;
 import com.software.androidthesis.Adapter.WordAdapter;
 import com.software.androidthesis.api.ApiServiceImpl;
 import com.software.androidthesis.entity.WordDTO;
@@ -100,6 +102,8 @@ public class AFragment extends Fragment {
 
     private boolean isEvaluationComplete = false;  // 用来标记是否完成语音测评
 
+    private Date selectedDate;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -108,6 +112,8 @@ public class AFragment extends Fragment {
         // 从 SharedPreferences 获取 userId
         SharedPreferences preferences = getContext().getSharedPreferences("UserPreferences", getContext().MODE_PRIVATE);
         userId = preferences.getLong("id", -1);
+
+        selectedDate = new Date();
 
         viewPager = view.findViewById(R.id.viewPager);
         waveView = view.findViewById(R.id.waveView);
@@ -195,18 +201,23 @@ public class AFragment extends Fragment {
         // 按钮点击事件
         btnSpeak.setOnClickListener(v -> {
             if (currentWord != null && !currentWord.isEmpty()) {
-                String word = null;
+                String word = "";
                 try {
-                    word = URLEncoder.encode(currentWord, "UTF-8");
+                    word = currentWord.replace("\u00A0", "");
+
+                    // 进行 URL 编码
+                    word = URLEncoder.encode(word, "UTF-8").replace("+", "%20");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
 
-                // 拼接音频 URL（这里使用有道的 TTS 服务）
+                // 拼接音频 URL
                 String audioUrl = "https://dict.youdao.com/dictvoice?audio=" + word + "&type=2";
+                Log.d("TTS Audio URL", audioUrl);
 
                 // 创建数据源
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getContext(), Util.getUserAgent(getContext(), "yourApplicationName"));
+                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(
+                        getContext(), Util.getUserAgent(getContext(), "yourApplicationName"));
 
                 // 创建媒体源
                 MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
@@ -225,11 +236,8 @@ public class AFragment extends Fragment {
                     public void onPlaybackStateChanged(int playbackState) {
                         Player.Listener.super.onPlaybackStateChanged(playbackState);
                         if (playbackState == Player.STATE_ENDED) {
-                            // 播放结束
-                            // Toast.makeText(getContext(), "播放结束", Toast.LENGTH_SHORT).show();
                             playAudio(audioFilePath);  // 播放录音
                         } else if (playbackState == Player.STATE_BUFFERING) {
-                            // 缓冲中
                             Toast.makeText(getContext(), "正在缓冲...", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -238,6 +246,7 @@ public class AFragment extends Fragment {
                 Toast.makeText(getContext(), "没有可播放的单词", Toast.LENGTH_SHORT).show();
             }
         });
+
 
 
         // 设置按钮点击事件
@@ -376,46 +385,51 @@ public class AFragment extends Fragment {
         waveView.setVisibility(View.GONE);
         button2.setVisibility(View.VISIBLE);
 
-        // 获取评分后调用 updateUserWord
-        int score = sum;  // 获取评分
-        String word = currentWord;  // 获取当前的单词
+        int score = sum;
+        String word = currentWord;
 
-        // 调用 API 更新用户单词评分
         ApiServiceImpl apiService = new ApiServiceImpl();
-        apiService.updateUserWord(userId, word, score, date, new ApiServiceImpl.ApiCallback<String>() {  // 修改回调为 String 类型
+
+        // 先更新评分
+        apiService.updateUserWord(userId, word, score, date, new ApiServiceImpl.ApiCallback<String>() {
             @Override
             public void onSuccess(String response) {
-                // 请求成功后的处理逻辑
                 Log.d(TAG, "成功更新单词评分：" + response);
-                // 可在此处执行其他操作，如更新 UI 或显示提示
                 Toast.makeText(getContext(), "单词评分更新成功", Toast.LENGTH_SHORT).show();
+
+                // 更新成功后再调用新增复习计划
+                apiService.reviewAndSchedule(userId, word, score, date, new ApiServiceImpl.ApiCallback<String>() {
+                    @Override
+                    public void onSuccess(String result) {
+                        Log.d(TAG, "复习计划已生成：" + result);
+                        Toast.makeText(getContext(), "复习计划已生成", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String errorMsg) {
+                        Log.e(TAG, "复习计划生成失败：" + errorMsg);
+                        Toast.makeText(getContext(), "复习计划生成失败: " + errorMsg, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
             public void onError(String errorMessage) {
-                // 请求失败后的处理逻辑
                 Log.e(TAG, "更新单词评分失败：" + errorMessage);
-                // 可在此处执行其他操作，如更新 UI 或显示提示
                 Toast.makeText(getContext(), "更新失败: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
 
-        // 设置测评完成标志
-        isEvaluationComplete = true;  // 语音测评完成
+        isEvaluationComplete = true;
 
-        // 播放录音前延迟 2 秒
         if (audioFilePath != null) {
-            // 延迟 2 秒后播放录音
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    button2.setVisibility(View.GONE);
-                    // 调用播放录音的函数
-                    playAudio(audioFilePath);
-                }
-            }, 1000); // 延迟 2 秒后播放录音
+            new Handler().postDelayed(() -> {
+                button2.setVisibility(View.GONE);
+                playAudio(audioFilePath);
+            }, 1000);
         }
     }
+
 
     // 播放录音
     private void playAudio(String filePath) {
@@ -528,7 +542,15 @@ public class AFragment extends Fragment {
         Button txtWordFinish = getView().findViewById(R.id.Txt_word_finish);
 
         textFinish.setVisibility(View.VISIBLE);
-        txtWordFinish.setVisibility(View.VISIBLE);}
+        txtWordFinish.setVisibility(View.VISIBLE);
+        txtWordFinish.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), WordReviewListActivity.class);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String formattedDate = dateFormat.format(selectedDate);
+            intent.putExtra("selectedDate", formattedDate); // 传递选中的日期
+            startActivity(intent);
+        });
+    }
 
 
     // EvaluatorListener

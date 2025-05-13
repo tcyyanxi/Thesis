@@ -38,6 +38,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name="com.software.androidthesis.Activity.ArticleScoreActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.software.androidthesis.Activity.WordReviewListActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.software.androidthesis.Activity.ListenActivity"
+            android:exported="false" />
+        <activity
             android:name="com.software.androidthesis.Activity.WordActivity"
             android:exported="false" />
         <activity

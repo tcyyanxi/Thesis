@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,12 +30,14 @@ import android.widget.Toast;
 
 
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.iflytek.cloud.EvaluatorListener;
 import com.iflytek.cloud.EvaluatorResult;
@@ -43,7 +46,10 @@ import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvaluator;
 import com.iflytek.cloud.SpeechUtility;
 import com.software.androidThesis.R;
+import com.software.androidthesis.api.ApiServiceImpl;
+import com.software.androidthesis.entity.UserArticle;
 import com.software.androidthesis.util.AudioUtils;
+import com.software.androidthesis.util.TtsUtil;
 import com.software.androidthesis.view.NoUnderlineMovementMethod;
 import com.software.androidthesis.view.ToastView;
 import com.software.androidthesis.view.WaveView;
@@ -58,7 +64,12 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,8 +97,11 @@ public class ArticleActivity extends AppCompatActivity {
     private Button backButton;
 
     private Button finishButton;
+    private  Button historyButton;
 
     private String[] sentences; // 存储拆分后的句子
+
+    private int[] scores;
     private int currentSentenceIndex;  // 当前选中的句子索引
     private int wordSum = 0;
     private final Set<Integer> evaluatedSentenceIndices = new HashSet<>();
@@ -96,7 +110,7 @@ public class ArticleActivity extends AppCompatActivity {
     private String audioFilePath = null;  // 录音文件路径
     private String mLastResult;  // 存储评测结果
     private int sum;
-
+    private Long userId = Long.valueOf(-1);
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -109,6 +123,12 @@ public class ArticleActivity extends AppCompatActivity {
         articleId = intent.getIntExtra("articleId", -1); // 获取文章ID
         articleTitle = intent.getStringExtra("title"); // 获取文章标题
         articleContent = intent.getStringExtra("content"); // 获取文章内容
+
+        // 获取用户ID（从SharedPreferences获取）
+        SharedPreferences preferences = getSharedPreferences("UserPreferences", MODE_PRIVATE);
+        userId = preferences.getLong("id", -1);  // 从SharedPreferences获取已登录用户的ID
+        Log.d("UserEditActivity", "用户ID已从SharedPreferences: " + userId);
+
 
         player = new SimpleExoPlayer.Builder(this).build();
         // 初始化播放器
@@ -149,6 +169,7 @@ public class ArticleActivity extends AppCompatActivity {
         nextButton = findViewById(R.id.nextButton);
         backButton = findViewById(R.id.backButton);
         finishButton = findViewById(R.id.finishButton);
+        historyButton = findViewById(R.id.historyButton);
 
         // 隐藏“下一条”按钮，直到测评完成
         nextButton.setVisibility(View.GONE);
@@ -165,18 +186,24 @@ public class ArticleActivity extends AppCompatActivity {
         // 使用 SpannableString 包装文章内容
         spannableText = new SpannableString(articleContent);
 
+        // 拆分文章内容为句子数组
         sentences = articleContent.split("(?<=[.!?;:,])|(?<=\\b(and|but|or|so|yet|for|nor|because|however|although|therefore|meanwhile|despite)\\b)|(?<=\\[|\\]|\\(|\\)|\\{|\\})");
-        for (String sentence : sentences) {
-            Log.d(TAG, "Sentence: " + sentence); // 输出每个句子
-        }
 
-        // 确保 sentences 不为 null 且不为空
+// 确保 sentences 不为 null 且不为空
         if (sentences == null || sentences.length == 0) {
             Log.e(TAG, "Sentences array is null or empty!");
             return;  // 提前返回，防止出现 NullPointerException
         }
 
+// 初始化 scores 数组，使其大小与 sentences 一致
+        scores = new int[sentences.length];
 
+        for (String sentence : sentences) {
+            Log.d(TAG, "Sentence: " + sentence); // 输出每个句子
+        }
+
+// 现在 scores 数组的大小等于 sentences 数组的大小
+        Log.d(TAG, "Scores array initialized with size: " + scores.length);
 
         // 初始化时将所有句子的颜色设置为黑色
         int startIndex = 0;
@@ -205,45 +232,33 @@ public class ArticleActivity extends AppCompatActivity {
         // 按钮点击事件
         btnSpeak.setOnClickListener(v -> {
             if (selectedSentence != null && !selectedSentence.isEmpty()) {
-                String word = null;
-                try {
-                    word = URLEncoder.encode(selectedSentence, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                String finalText = selectedSentence.replace("\u00A0", ""); // 去除特殊空格
 
-                // 拼接音频 URL（这里使用有道的 TTS 服务）
-                String audioUrl = "https://dict.youdao.com/dictvoice?audio=" + word + "&type=2";
+                new Thread(() -> {
+                    // 调用语音合成工具类进行合成
+                    String path = TtsUtil.synthesizeTextToMp3(ArticleActivity.this, finalText);
 
-                // 创建数据源
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this, Util.getUserAgent(this, "yourApplicationName"));
+                    if (path != null) {
+                        runOnUiThread(() -> {
+                            // 播放本地 MP3 文件
+                            Uri uri = Uri.fromFile(new File(path));
+                            MediaItem mediaItem = MediaItem.fromUri(uri);
 
-                // 创建媒体源
-                MediaSource mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(MediaItem.fromUri(audioUrl));
+                            if (player == null) {
+                                player = new SimpleExoPlayer.Builder(ArticleActivity.this).build();
+                            } else {
+                                player.stop();
+                                player.clearMediaItems();
+                            }
 
-                // 准备播放器
-                player.setMediaSource(mediaSource);
-                player.prepare();
-
-                // 开始播放
-                player.play();
-
-                // 添加播放状态监听器
-                player.addListener(new Player.Listener() {
-                    @Override
-                    public void onPlaybackStateChanged(int playbackState) {
-                        Player.Listener.super.onPlaybackStateChanged(playbackState);
-                        if (playbackState == Player.STATE_ENDED) {
-                            // 播放结束
-//                            Toast.makeText(ArticleActivity.this, "播放结束", Toast.LENGTH_SHORT).show();
-                        } else if (playbackState == Player.STATE_BUFFERING) {
-                            // 缓冲中
-                            ToastView.showCustomToast(ArticleActivity.this, "正在缓冲...");
-//                            Toast.makeText(ArticleActivity.this, "正在缓冲...", Toast.LENGTH_SHORT).show();
-                        }
+                            player.setMediaItem(mediaItem);
+                            player.prepare();
+                            player.setPlayWhenReady(true);
+                        });
+                    } else {
+                        runOnUiThread(() -> Toast.makeText(ArticleActivity.this, "语音合成失败", Toast.LENGTH_SHORT).show());
                     }
-                });
+                }).start();
 
             } else {
                 Toast.makeText(ArticleActivity.this, "请选择一个句子", Toast.LENGTH_SHORT).show();
@@ -307,6 +322,34 @@ public class ArticleActivity extends AppCompatActivity {
         // 设置按钮点击事件
         button2.setOnClickListener(v -> startRecording());
         waveView.setOnClickListener(v -> stopRecordingAndEvaluate());
+        finishButton.setOnClickListener(v -> {
+            if (userId == -1) {
+                Toast.makeText(this, "用户未登录", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (articleId == -1) {
+                Toast.makeText(this, "文章 ID 不能为空", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 计算平均分并发送给后端
+            sendAverageScoreToBackend(userId, articleId);
+        });
+
+        historyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 创建 Intent 用于跳转到 ActivityScoreActivity
+                Intent intent = new Intent(ArticleActivity.this, ArticleScoreActivity.class);
+
+                // 将文章的 id 作为额外数据传递给下一页
+                intent.putExtra("articleId", articleId);
+
+                // 启动 Activity
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -531,7 +574,7 @@ public class ArticleActivity extends AppCompatActivity {
                     // 调用播放录音的函数
                     playAudio(audioFilePath);
                 }
-            }, 500); // 延迟  秒
+            }, 500); // 延迟 0.5 秒
         }
     }
 
@@ -588,6 +631,9 @@ public class ArticleActivity extends AppCompatActivity {
                                 sum = (int) (Float.parseFloat(totalScoreString) * 20);
                                 Log.d(TAG, "总评分提取并处理: " + sum); // 输出处理后的总评分
                                 resultTextView.setText("评分：" + sum); // 显示评分
+                                Log.d("currentSentenceIndex",String.valueOf(currentSentenceIndex));
+                                scores[currentSentenceIndex] = sum;
+                                Log.d("score的评分","好吧："+ scores[currentSentenceIndex]);
 
                             } catch (NumberFormatException e) {
                                 Log.e(TAG, "解析总评分失败: " + totalScoreString, e); // 如果转换失败，输出错误日志
@@ -720,6 +766,58 @@ public class ArticleActivity extends AppCompatActivity {
 
         // 设置处理后的文本到 TextView
         articleTextView.setText(spannableTextForWords);
+    }
+
+    private double calculateAverageScore() {
+        if (scores == null || scores.length == 0) {
+            Log.e("ArticleActivity", "scores 数组为空，无法计算平均分");
+            return 0;
+        }
+
+        double sum = 0;
+        for (int score : scores) {
+            sum += score;
+        }
+        resultTextView.setText("全文总分：" + sum / scores.length);
+        return sum / scores.length;
+    }
+
+    public void sendAverageScoreToBackend(Long userId, Integer articleId) {
+        if (userId == -1) {
+            Toast.makeText(this, "用户未登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        double averageScore = calculateAverageScore(); // 计算平均分
+
+        UserArticle userArticle = new UserArticle();
+        userArticle.setId(userId);
+        userArticle.setArticleId(articleId);
+        userArticle.setCount((int) averageScore);
+
+// 获取当前时间
+        Date currentDate = new Date();
+
+        // 使用 SimpleDateFormat 格式化时间
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(currentDate);
+
+        userArticle.setTime(formattedDate);
+
+        ApiServiceImpl apiService = new ApiServiceImpl();
+        apiService.addUserArticle(userArticle, new ApiServiceImpl.ApiCallback<String>() {
+            @Override
+            public void onSuccess(String response) {
+                Log.d("ArticleActivity", "记录添加成功: " + response);
+                Toast.makeText(ArticleActivity.this, "记录添加成功", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("ArticleActivity", "记录添加失败: " + errorMessage);
+                Toast.makeText(ArticleActivity.this, "添加失败: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 

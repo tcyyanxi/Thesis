@@ -1,6 +1,7 @@
 package com.software.androidthesis.api;
 
 import com.software.androidthesis.entity.Article;
+import com.software.androidthesis.entity.UserArticle;
 import com.software.androidthesis.entity.UserEdit;
 import com.software.androidthesis.entity.Word;
 import com.software.androidthesis.entity.WordDTO;
@@ -59,5 +60,34 @@ public interface ApiService {
                                              @Query("word") String word,
                                              @Query("count") int count,
                                              @Query("date") String date);
+
+    @GET("words/getWordsByUserIdAndDateListen")
+    Call<List<WordDTO>> getWordsByUserIdAndDateListen(@Query("id") Long id, @Query("date") String date);
+
+    // 查询特定用户和文章的记录（返回列表）
+    @GET("user-article/get")
+    Call<List<UserArticle>> getUserArticle(
+            @Query("id") Long id,
+            @Query("articleId") Integer articleId
+    );
+
+    // 插入新记录
+    @POST("user-article/add")
+    Call<String> addUserArticle(@Body UserArticle userArticle);
+
+    // 提交学习成绩并生成复习计划
+    @PUT("user-words/review/schedule")
+    Call<String> reviewAndSchedule(
+            @Query("id") Long userId,
+            @Query("word") String word,
+            @Query("score") int score,
+            @Query("date") String date
+    );
+
+    // 顺延未完成的学习任务
+    @PUT("user-words/reschedule/unfinished")
+    Call<String> rescheduleUnfinishedTasks(
+            @Query("id") Long userId
+    );
 
 }

@@ -18,22 +18,16 @@
             android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button 1"
+            android:text="每日详情"
             />
         <Button
             style="?attr/materialButtonOutlinedStyle"
             android:id="@+id/button2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Button 2"
+            android:text="近期情况"
             />
-        <Button
-            style="?attr/materialButtonOutlinedStyle"
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Button 3"
-            />
+
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <FrameLayout
